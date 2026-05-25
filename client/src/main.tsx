@@ -25,11 +25,11 @@ const api = {
     if (!response.ok) throw new Error("Failed to load jobs.");
     return response.json();
   },
-  async addTarget(value: string): Promise<Job[]> {
+  async addTarget(value: string, limit: number): Promise<Job[]> {
     const response = await fetch("/api/scrape", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: value })
+      body: JSON.stringify({ url: value, limit })
     });
     const body = await response.json();
     if (!response.ok) throw new Error(body.error ?? "Could not add job.");
@@ -57,6 +57,7 @@ function App() {
   const [jobs, setJobs] = React.useState<Job[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [target, setTarget] = React.useState("");
+  const [limit, setLimit] = React.useState(50);
   const [busy, setBusy] = React.useState<"scrape" | "generate" | null>(null);
   const [error, setError] = React.useState("");
 
@@ -77,7 +78,7 @@ function App() {
     setError("");
     setBusy("scrape");
     try {
-      const foundJobs = await api.addTarget(target);
+      const foundJobs = await api.addTarget(target, limit);
       setJobs((current) => [...foundJobs, ...current]);
       setSelectedId(foundJobs[0]?.id ?? null);
       setTarget("");
@@ -118,6 +119,20 @@ function App() {
                 placeholder="Paste job name"
                 className="h-11 w-full border border-neutral-800 bg-black px-3 font-mono text-sm text-neutral-100 outline-none transition focus:border-neutral-500"
               />
+              <div className="grid grid-cols-[1fr_92px] items-center gap-3">
+                <label className="font-mono text-xs uppercase tracking-[0.16em] text-neutral-500" htmlFor="job-limit">
+                  Jobs to find
+                </label>
+                <input
+                  id="job-limit"
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={limit}
+                  onChange={(event) => setLimit(Math.min(Math.max(Number(event.target.value) || 1, 1), 100))}
+                  className="h-10 w-full border border-neutral-800 bg-black px-3 text-right font-mono text-sm text-neutral-100 outline-none transition focus:border-neutral-500"
+                />
+              </div>
               <button
                 disabled={!target || busy === "scrape"}
                 className="h-11 w-full border border-neutral-700 bg-neutral-100 px-3 font-mono text-xs uppercase tracking-[0.16em] text-black transition hover:bg-white disabled:cursor-not-allowed disabled:border-neutral-900 disabled:bg-neutral-800 disabled:text-neutral-500"

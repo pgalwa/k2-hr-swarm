@@ -164,20 +164,34 @@ async function kimiJson(systemPrompt: string, userPrompt: string, options: { web
   throw new Error("Kimi web search did not finish within the local tool-call limit.");
 }
 
-export async function runJobDiscoverySwarm(query: string): Promise<DiscoverySwarmOutput> {
+export async function runJobDiscoverySwarm(query: string, limit = 50): Promise<DiscoverySwarmOutput> {
+  const requestedLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
   const systemPrompt = `You are Kimi K2.6 acting as a remote-job discovery swarm.
 
 Operate as three internal agents:
-- Agent 1: Web scout. Use your built-in web search to find current remote-first job listings on the public web.
+- Agent 1: Source-diverse web scout. Use your built-in web search to find current remote-first job listings on the public web across many source categories.
 - Agent 2: Relevance adversary. Reject loose keyword traps. For a query like "React Native", reject roles where React Native appears only as a buried tag but the role is marketing, editor, sales, recruiter, or unrelated product/content work.
 - Agent 3: Remote-first guard. Keep only remote-first jobs. Reject onsite, hybrid-only, location-locked roles unless the listing is explicitly remote-first.
+- Agent 4: Source balance auditor. Prevent over-reliance on one board. Prefer source diversity when relevance is similar.
+
+Source coverage targets:
+- Remote-only boards: Remote OK, We Work Remotely, Remotive, Working Nomads, Himalayas, FlexJobs-style listings when accessible.
+- Large job boards: LinkedIn Jobs, Indeed, Wellfound, Otta/Welcome to the Jungle, Glassdoor, Built In, Dice, ZipRecruiter.
+- Startup and VC boards: Y Combinator companies, Wellfound startups, a16z portfolio jobs, Sequoia/SignalFire/Index/Accel portfolio career pages when visible.
+- Direct company career pages: Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee, BambooHR, Personio, Teamtailor, company /careers pages.
+- Developer communities: GitHub org career pages, Hacker News "Who is hiring" posts, niche React Native/mobile/frontend communities with job posts.
+- Regional remote sources: EU remote boards and company pages with Europe/EMEA remote constraints.
 
 Hard rules:
 - Select only jobs matching the typed role intent, not broad keyword noise.
 - Prefer title, seniority, tags, and actual responsibilities over one-off words in long descriptions.
-- Search job boards and company career pages directly.
+- Search multiple source categories before finalizing. Do not return all requested jobs from a single source unless no other relevant sources exist.
+- Aim for no more than 10 jobs from the same source domain when equally relevant alternatives exist.
+- Search job boards, ATS-hosted job pages, direct company career pages, startup portfolio boards, and remote-only boards directly.
 - Return real listings only. Do not invent companies, URLs, or descriptions.
-- If fewer than 50 are truly relevant, return fewer than 50. Precision beats volume.
+- Prefer canonical job URLs over aggregator duplicates.
+- Deduplicate the same role across aggregator and company pages, keeping the direct company/ATS page when available.
+- If fewer than the requested number are truly relevant, return fewer. Precision beats volume.
 - Return only valid JSON with this exact shape:
 {
   "selected_jobs": [
@@ -196,9 +210,9 @@ Hard rules:
 
   const parsed = (await kimiJson(
     systemPrompt,
-    `Find up to 50 current remote-first job listings for this typed role query: "${query}".
+    `Find up to ${requestedLimit} current remote-first job listings for this typed role query: "${query}".
 
-Use web search aggressively. Search for exact role titles, close role variants, and remote-first wording. Keep the output factual and machine-readable.`,
+Use web search aggressively and diversify sources. Search exact role titles, close role variants, remote-first wording, and ATS-hosted job pages. Run searches across remote-only boards, major job boards, startup/VC boards, direct company career pages, and developer community listings before choosing the final set. Keep the output factual and machine-readable.`,
     { webSearch: true }
   )) as Partial<DiscoverySwarmOutput>;
 
@@ -209,7 +223,7 @@ Use web search aggressively. Search for exact role titles, close role variants, 
   return {
     selected_jobs: parsed.selected_jobs
       .filter((job) => job?.url && job?.title && job?.company)
-      .slice(0, 50)
+      .slice(0, requestedLimit)
       .map((job) => ({
         source: String(job.source ?? "Kimi web search"),
         title: String(job.title),

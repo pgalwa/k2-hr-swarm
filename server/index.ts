@@ -33,9 +33,10 @@ app.get("/api/jobs", async (_request, response) => {
 
 app.post("/api/scrape", async (request, response) => {
   try {
-    const { url } = request.body as { url?: string };
+    const { url, limit } = request.body as { url?: string; limit?: number };
     const value = url?.trim() ?? "";
-    const job = /^https?:\/\//i.test(value) ? await scrapeJob(value) : await seekRemoteFirstJobs(value);
+    const requestedLimit = Number.isFinite(limit) ? Number(limit) : 50;
+    const job = /^https?:\/\//i.test(value) ? await scrapeJob(value) : await seekRemoteFirstJobs(value, requestedLimit);
     response.status(201).json(job);
   } catch (error) {
     response.status(400).json({ error: error instanceof Error ? error.message : "Could not add job." });

@@ -76,13 +76,13 @@ function discoveryJobToRecord(job: DiscoveryJob, now: string): JobRecord {
   };
 }
 
-export async function seekRemoteFirstJobs(roleName: string): Promise<JobRecord[]> {
+export async function seekRemoteFirstJobs(roleName: string, limit = 50): Promise<JobRecord[]> {
   const query = cleanText(roleName);
   if (!query) {
     throw new Error("Paste a job name to ask Kimi for remote-first roles.");
   }
 
-  const discovery = await runJobDiscoverySwarm(query);
+  const discovery = await runJobDiscoverySwarm(query, limit);
   if (discovery.selected_jobs.length === 0) {
     throw new Error("Kimi did not find any relevant remote-first jobs for that role.");
   }
