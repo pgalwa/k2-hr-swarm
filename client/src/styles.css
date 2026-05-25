@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #0a0a0a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #0a0a0a;
+}
+
+button,
+input {
+  border-radius: 0;
+}
+
+::selection {
+  background: #f5f5f5;
+  color: #000;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #404040;
+  border: 2px solid #0a0a0a;
+}
+
+.rendered-markdown {
+  max-width: none;
+  color: #d4d4d4;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.rendered-markdown h1,
+.rendered-markdown h2,
+.rendered-markdown h3 {
+  margin: 1.75rem 0 0.75rem;
+  color: #fff;
+  font-family: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rendered-markdown h1 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.rendered-markdown h2 {
+  font-size: 1rem;
+}
+
+.rendered-markdown h3 {
+  font-size: 0.875rem;
+}
+
+.rendered-markdown p,
+.rendered-markdown ul,
+.rendered-markdown ol {
+  margin: 0.75rem 0;
+}
+
+.rendered-markdown ul,
+.rendered-markdown ol {
+  padding-left: 1.25rem;
+}
+
+.rendered-markdown li {
+  margin: 0.35rem 0;
+}
+
+.rendered-markdown strong {
+  color: #fff;
+}
