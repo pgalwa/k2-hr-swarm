@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "client"
+  ],
   "scripts": {
-    "install:all": "npm install && npm install --prefix client && npx playwright install chromium",
-    "dev": "concurrently -n server,client -c cyan,magenta \"npm run server:dev\" \"npm run client:dev\"",
+    "install:all": "npm install && npx playwright install chromium",
+    "dev": "npm run ensure:client && concurrently -n server,client -c cyan,magenta \"npm run server:dev\" \"npm run client:dev\"",
+    "ensure:client": "test -x node_modules/.bin/vite || test -x client/node_modules/.bin/vite || npm install",
     "server:dev": "tsx watch server/index.ts",
-    "client:dev": "npm run dev --prefix client",
-    "build": "npm run build --prefix client",
+    "client:dev": "npm run dev -w hybrid-hunter-client",
+    "build": "npm run build -w hybrid-hunter-client",
     "start": "node --import tsx server/index.ts"
   },
   "dependencies": {

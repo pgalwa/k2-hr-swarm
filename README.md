@@ -18,7 +18,7 @@ MOONSHOT_BASE_URL=https://api.moonshot.ai/v1/chat/completions
 KIMI_MODEL=kimi-k2.6
 ```
 
-OpenRouter is still supported as a fallback with `OPENROUTER_API_KEY`.
+Moonshot is the supported path. OpenRouter is not suggested for this app and has not been tested here. In particular, Kimi web-search job discovery depends on Moonshot's built-in `$web_search` tool, so use `MOONSHOT_API_KEY`.
 
 ## Run
 
